@@ -268,7 +268,9 @@ First lets load the gene annotation
 
 ```{r}
 
-gene_annotation <- read.table()
+gene_annotation = read.table("~/GitHub/WorkshopR/IntroductoryLevel/data/gene_annotation.bed", header = TRUE)
+
+peak_location = data.frame(seqnames = "chr1", start = 114567557, end = 114581629, strand = "-", signal = "5.6")
 
 ```
 
