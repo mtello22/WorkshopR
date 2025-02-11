@@ -1,0 +1,287 @@
+---
+title: "Session 2"
+author: "Marco Tello"
+date: "2025-02-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  warning = TRUE, # show warnings
+  message = TRUE, # show messages
+  error = TRUE, # do not interrupt generation in case of errors,
+  echo = TRUE  # show R code
+)
+
+```
+
+# Coding Workshop in R
+
+The goal of this workshop is to learn how to solve problems for data analysis using R while acquiring good practices and learning how this black-box called "computer" makes the magic happen.
+
+The structure and content of this workshop is based on the course imparted by Prof Augusto Freyre Gonzalez at the Universidad Nacional Autónoma de México (UNAM).
+
+# Content outline
+
+1.  Types of variables and how to make a table
+
+2.  **Algorithm design, loops and conditional statements**
+
+3.  Build your own functions
+
+4.  Use of R specific tools: apply and tidy
+
+5.  Plotting in R: ggplot
+
+# Session 2: Algorithm design, loops and conditional statements.
+
+Last class we talked about what is an algorithm:
+
+<https://www.youtube.com/watch?v=j-6N3bLgYyQ>\
+
+Boring definition: "An **algorithm** is a step-by-step procedure for solving a specific problem in a finite number of steps."
+
+Today you'll get to be the kid trying to make the computer do your bidding.
+
+## Determine IF a number is even (25 min)
+
+Considering any integer between 1 and 20, write a code that prints a message if the given number is even.
+
+### 1. What is the problem?   
+
+### 2. What do we need to solve the problem?
+
+\
+Probably you noticed we need a special type of instruction that determines if something is TRUE or FALSE. This goes hand in hand with one of the five data types we talked about last class:\
+
+-   Numeric
+
+-   Integer
+
+-   Character
+
+-   Factor
+
+-   **Logical**
+
+A logical variable can only have two values:\
+
+```{r}
+# They can be longer than two elements
+logical_var = c(TRUE, FALSE)
+typeof(logical_var)
+
+logical_var = as.logical(c(1, 0))
+logical_var
+```
+
+This is one of the most primitive data types since, internally, each computer works only with logical gates: 1 or 0, absence or presence of electrical signal.
+
+\
+You can obtain a logical result when you do a comparison in a computer:
+
+```{r}
+
+var1 = 5
+var2 = 3
+
+result = var1 < var2
+
+result
+
+typeof(result)
+```
+
+We typically use logical variables to evaluate whether a condition is met or not. For example in the past chunk we evaluated if var1 is smaller than var2. If you want to do something depending on the result, you can use an if statement
+
+```{r}
+
+if(var1 < var2){
+  # If the result is true:
+  print("var2 is bigger")
+} else{
+  # If the result is false:
+  print("var1 is bigger")
+}
+
+```
+
+The if statement is widely used, so much that there is a simplified function in R called ifelse(). I only recommend using it when the options are simple:\
+
+```{r}
+
+ifelse(var1 < var2, "var2 is bigger", "var1 is bigger")
+
+```
+
+\
+
+### 3. What series of steps do we need to solve the problem?     
+
+### 4. Now lets code: 
+
+```{r}
+
+```
+
+### 5. After multiple testings, what is your solution?
+
+```{r}
+
+
+```
+
+### 6. Explain your solution, don't be your own worst enemy
+
+\
+
+```{r}
+
+
+```
+
+NOTE: Module
+
+## Sort a vector of integers in descending order (25 min)
+
+```{r}
+disordered_vector <- c(5, 2, 7, 9, 3, 1, 4)
+disordered_vector
+```
+
+### 1. What is the problem?
+
+### 2. How do you walk over a vector?
+
+Do you remember how we accessed a specific element in a vector?
+
+```{r}
+
+disordered_vector
+```
+
+What if now we a variable to represent that index number:
+
+```{r}
+
+i = 1
+disordered_vector[i]
+```
+
+Now we can modify i adding one unit at the time to access each element in the vector:
+
+```{r}
+
+i = 1
+disordered_vector[i]
+
+i = i + 1
+disordered_vector[i]
+
+i = i + 1
+disordered_vector[i]
+
+i = i + 1
+disordered_vector[i]
+
+i = i + 1
+disordered_vector[i]
+
+i = i + 1
+disordered_vector[i]
+
+i = i + 1
+disordered_vector[i]
+```
+
+Now, this code is highly repetitive. Which makes it hard to read and prone to errors (like with DNA 🧬).
+
+When you have a series of repetitive steps that you want to perform until a certain condition is met, you need control flow statements:
+
+-   while( condition is true ){\
+    something\
+    something else\
+    }
+
+-   do{\
+    something\
+    something else\
+    } while( condition is true )
+
+Considering these new instructions, we can use them to walk over a vector:
+
+ 
+
+```{r}
+
+i = 1
+while(i <= 7){
+  print(disordered_vector[i])
+  i = i + 1
+}
+
+```
+
+This type of while loop to walk over a vector is so common that is was further simplified into a for loop
+
+```{r, eval=FALSE}
+
+for(i = 1; i <= 7; i++){
+  print(disordered_vector[i])
+}
+
+```
+
+Unfortunately, this type of for loop is not available in R.
+
+Since R is designed for working with vectors, the for loop directly iterates over vector elements
+
+```{r}
+
+for(number in disordered_vector){
+  print(number)
+}
+```
+
+There is a more extreme optimization of for loops for R, covered by the family of apply() functions. Which will be covered in a future session.
+
+### 3. What steps do we need to sort the vector?
+
+### 4-5. Implementing and testing
+
+```{r}
+
+```
+
+### 6. Document your solution:
+
+```{r}
+
+```
+
+## Annotate a ChIP-seq peak to their corresponding gene (10 min)
+
+Using what you learned today, now you can do it!
+
+First lets load the gene annotation
+
+```{r}
+
+gene_annotation <- read.table()
+
+```
+
+## Remember the steps for solving a problem using a computer
+
+1.  Identifying the problem
+
+2.  Analyzing its requirements
+
+3.  Designing an algorithm to solve it
+
+4.  Implementing the algorithm through coding
+
+5.  Testing the solution
+
+6.  Documenting your solution

@@ -1,0 +1,328 @@
+---
+title: "Session 1"
+author: "Marco Tello"
+date: "2025-01-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(
+  warning = TRUE, # show warnings
+  message = TRUE, # show messages
+  error = TRUE, # do not interrupt generation in case of errors,
+  echo = TRUE  # show R code
+)
+
+```
+
+# Coding Workshop in R
+
+The goal of this workshop is to learn how to solve problems for data analysis using R while acquiring good practices and learning how this black-box called "computer" makes the magic happen.
+
+The structure and content of this workshop is based on the course imparted by Prof Augusto Freyre Gonzalez at the Universidad Nacional Autónoma de México (UNAM).
+
+# Content outline
+
+1.  Types of variables and how to make a table
+
+2.  Algorithm design, loops and conditional statements
+
+3.  Build your own functions
+
+4.  Use of R specific tools: apply and tidy
+
+5.  Plotting in R: ggplot
+
+# Session 1: Types of variables and how to make a table.
+
+By the end of today's session you should be able to load data in R, perform basic operations and save your processed table as a file.
+
+## Install R and Rstudio *(10 min)*
+
+1.  Install R: <https://cran.r-project.org/bin/windows/base/>
+
+2.  Install Rstudio: <https://posit.co/download/rstudio-desktop/>
+
+## Intro to computers *(30 min)*
+
+What is a computer? In short, the perfect slave.
+
+In other words, a device that can:
+
+-   Store
+
+-   Process
+
+-   Retrieve
+
+## Storing a value in a computer
+
+If you imagine the computer's memory as a neighborhood of houses, in each house the computer will store the data you want. As every house, it needs an address to access the information. This address is what we call a variable:
+
+```{r}
+
+p = 3.1416
+p
+
+```
+
+What happened here is that we grabbed the **real number** 3.1416 and we gave it a "home" named **p**
+
+We could do the same for other types of data such as:
+
+```{r}
+# Save an integer
+i = 5
+
+# Save a string of characters
+name = "Marco"
+
+i
+name
+```
+
+We can do more powerful things such as housing vectors of stuff in a single house using the operator:
+
+**c(** *Thing1***,** *Thing2***,** *Thing3* **,** *etc* **)**
+
+```{r}
+
+constants_val = c(3.1416, -9.08, 2.718, -273.15)
+constants_name = c("pi", "gravity_acceleration", "euler", "absolute_zero")
+
+constants_val
+constants_name
+
+```
+
+You may have noticed that values stored in the address *constants_name* is in quotation marks. This has to do with how the computer stores the information:
+
+-   Numbers are modest, any number will require at most two houses to live comfortable.
+
+-   Strings of characters are greedy, each letter will demand their own house.
+
+R is optimized for working with vectors, so you can even do vectors of vectors.
+
+```{r}
+
+constants = c(constants_val, constants_name)
+constants
+```
+
+However, did you notice what happened to the numbers?
+
+They're no longer numbers!
+
+We can use the function **typeof(** *variable* **)** to determine what is inside each "house"
+
+```{r}
+
+typeof(constants)
+
+typeof(constants_val)
+
+```
+
+All values "housed" uin the variable *constants* are coerced into a character! This is because each house can only save one type of data, so R will convert everything to a common data type. Since we cannot convert letters to numbers, R will treat numbers as if they were characters.
+
+### Lesson: Be careful and consistent with the formatting of your data
+
+If you have a column in your file where your numbers are a mix such as:
+
+"1.5", 1.5, 2.9, zero
+
+Everything will be coerced to characters, making your data processing inaccurate. If your table is large enough, it may crash your computer due to the amount of houses needed to allocate each character.
+
+This is a common mistake while developing good practices, so don't worry if you don't identify it the first couple of times.
+
+## Processing a value in a computer
+
+Related to the previous point, what do you expect will happen if we add 5 to the constant values we have saved so far?
+
+```{r}
+constants_val 
+constants_val + 5
+```
+
+So far so good.
+
+We can also modify the strings using functions designed to work with characters such as:
+
+**paste(** *string* **,** *string***)**
+
+```{r}
+
+constants_name
+
+paste(constants_name, 5)
+
+```
+
+As you can see, R will process different the values stored in the memory depending on their data type. R has 5 different data types:
+
+-   **Numeric**
+
+-   Integer
+
+-   **Character**
+
+-   Factor
+
+-   Logical
+
+As we progress with the workshop we will learn more about the other data types, but for now we will focus on Numeric and Character
+
+So if you want to add a 5 to the variable *constants* how would you do it?
+
+```{r}
+
+constants
+
+```
+
+## Retrieve a value
+
+Plot twist: we have already been retrieving values from the memory. Whenever you run a line calling a house address (variable), the computer goes to that house and brings the value to the screen so you can inspect it
+
+```{r}
+constants
+```
+
+So we will do something more interesting, what if you want to only recover the first value? or the second? even the last one?
+
+When you save a vector of values in the computer's memory, the computer builds an apartment complex so each element has their own unit:
+
+```{r}
+
+constants[1]
+constants[2]
+constants[6]
+
+```
+
+However, as you realized in the previous exercise, adding a 5 to a character version of a number is not the same as adding a 5 to a numeric version of a number. And you probably want to remember the names of each constant in the same variable. How do we solve this issue?
+
+## Creating a data frame (*20 min*)
+
+The best way to solve this issue would be to create an apartment complex with multiple towers, one tower for each data type or vector you want to store. This is what data frames are used for:
+
+```{r}
+constants = data.frame(name = constants_name, value = constants_val)
+constants
+```
+
+Now we replaced the useless constants variable and we build one two towers of departments, one called "name" containing the characters and other called "value" with the numeric data.
+
+Now, what if you want to access the value tower to add a 5 to all values? There are two ways of doing it:
+
+```{r}
+# Calling the tower by name
+
+constants$value
+
+# Calling the tower by coordinates: [apartment, tower]
+
+constants[ , 2]
+
+```
+
+By leaving the apartment part empty, R will interpret this as calling all apartments. How would you call the first apartment of both towers?
+
+```{r}
+
+constants
+
+```
+
+## Modifying a data frame
+
+Going back to our previous idea of adding 5 to the constant's values, we can do it by replacing the corresponding tower with a modified version
+
+```{r}
+
+constants$value = constants$value + 5
+
+constants
+```
+
+Can you add the string "constant" to all constant's names?
+
+```{r}
+
+constants
+
+```
+
+## Save the data frame to the hard drive
+
+So far we have been working with the working memory of your computer ( RAM ). This memory gets cleaned up every time you turn off the computer.
+
+If we want to conserve our data frame for a future use we can use a function called **write.table(***variable***,** *file name***,** ... **)**
+
+```{r}
+
+# Here you can choose the format of your data:
+# comma separated values: csv
+# tab separated values: tsv
+# I strongly recommend using tsv files as follows:
+
+write.table(constants, "~/constants_df.tsv", sep = '\t')
+
+```
+
+## Load the saved data frame into R
+
+Now lets do the opposite of writing: reading.
+
+For this purpose we will use the function **read.table(** *file name***,** ... **)**
+
+```{r}
+
+constants_disk = read.table("~/constants_df.tsv")
+constants_disk
+
+```
+
+# In case of having more time:
+
+### Data sets built-in R
+
+There are already some datasets you can use to explore R functions, a brief descriptions of all of them is available [here](https://www.sthda.com/english/wiki/r-built-in-data-sets)
+
+We will work with the dataset ToothGrowth, which description is as follows:
+
+" ToothGrowth data set contains the result from an experiment studying the effect of vitamin C on tooth growth in 60 Guinea pigs. Each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, (orange juice or ascorbic acid (a form of vitamin C and coded as VC)."
+
+```{r}
+data_frame = ToothGrowth
+data_frame
+```
+
+Lets say we want to calculate the mean length of tooth growth. How do we do it?
+
+## How to solve a problem using a computer?
+
+1.  Identifying the problem
+
+2.  Analyzing its requirements
+
+3.  Designing an algorithm to solve it
+
+4.  Implementing the algorithm through coding
+
+5.  Testing the solution
+
+6.  Documenting your solution
+
+### What is an algorithm?
+
+Best explanation ever:
+
+<https://www.youtube.com/watch?v=j-6N3bLgYyQ>\
+
+Boring definition: "An **algorithm** is a step-by-step procedure for solving a specific problem in a finite number of steps."
+
+```{r}
+
+```
