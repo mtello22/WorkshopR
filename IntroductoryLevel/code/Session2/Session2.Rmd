@@ -48,7 +48,20 @@ Today you'll get to be the kid trying to make the computer do your bidding.
 
 Considering any integer between 1 and 20, write a code that prints a message if the given number is even.
 
-### 1. What is the problem?   
+### 1. What is the problem?
+
+Number divisible by 2, no remainder
+
+How do you check if a number is divisible by something?
+
+```{r}
+
+# Module 
+
+5 %% 2
+
+4 %% 2
+```
 
 ### 2. What do we need to solve the problem?
 
@@ -72,8 +85,9 @@ A logical variable can only have two values:\
 logical_var = c(TRUE, FALSE)
 typeof(logical_var)
 
-logical_var = as.logical(c(1, 0))
+logical_var = as.logical(c(1, 0, 5))
 logical_var
+
 ```
 
 This is one of the most primitive data types since, internally, each computer works only with logical gates: 1 or 0, absence or presence of electrical signal.
@@ -101,6 +115,7 @@ if(var1 < var2){
   # If the result is true:
   print("var2 is bigger")
 } else{
+  print("something else")
   # If the result is false:
   print("var1 is bigger")
 }
@@ -117,11 +132,29 @@ ifelse(var1 < var2, "var2 is bigger", "var1 is bigger")
 
 \
 
-### 3. What series of steps do we need to solve the problem?     
+### 3. What series of steps do we need to solve the problem?
 
-### 4. Now lets code: 
+number {1, 2, 3, ... 20}
+
+1.  test if the module of the number is equal to 0
+
+2.  if it is TRUE print the number
+
+3.  if it is FALSE print "it's an odd number"\
+
+### 4. Now lets code:
 
 ```{r}
+
+number = sample(x = 1:20, size = 1, replace = TRUE)
+
+if((number %% 2) == 0){
+  print(number)
+}else{
+  print("it's an odd number!!")
+  print(number)
+}
+
 
 ```
 
@@ -129,6 +162,23 @@ ifelse(var1 < var2, "var2 is bigger", "var1 is bigger")
 
 ```{r}
 
+number = 2
+
+if((number %% 2) == 0){
+  print(number)
+}else{
+  print("it's an odd number!!")
+  print(number)
+}
+
+number = 5
+
+if((number %% 2) == 0){
+  print(number)
+}else{
+  print("it's an odd number!!")
+  print(number)
+}
 
 ```
 
@@ -138,10 +188,19 @@ ifelse(var1 < var2, "var2 is bigger", "var1 is bigger")
 
 ```{r}
 
+# This line gives one random number between 1 and 20.
+number = sample(x = 1:20, size = 1, replace = TRUE)
+number = 5
+
+# This code only works with integers
+if((number %% 2) == 0){
+  print(number)
+}else{
+  print("it's an odd number!!")
+  print(number)
+}
 
 ```
-
-NOTE: Module
 
 ## Sort a vector of integers in descending order (25 min)
 
@@ -152,19 +211,26 @@ disordered_vector
 
 ### 1. What is the problem?
 
+-   Compare the numbers
+
+-   Rank the numbers
+
+-   Order from largest to smallest
+
 ### 2. How do you walk over a vector?
 
 Do you remember how we accessed a specific element in a vector?
 
 ```{r}
 
-disordered_vector
+disordered_vector[1]
 ```
 
-What if now we a variable to represent that index number:
+What if now we use a variable to represent that index number:
+
+**Note: R is 1-based index, Python is 0-based index**
 
 ```{r}
-
 i = 1
 disordered_vector[i]
 ```
@@ -197,7 +263,7 @@ disordered_vector[i]
 
 Now, this code is highly repetitive. Which makes it hard to read and prone to errors (like with DNA 🧬).
 
-When you have a series of repetitive steps that you want to perform until a certain condition is met, you need control flow statements:
+When you have a series of repetitive steps that you want to perform until a certain condition is met, you need **control flow statements**:
 
 -   while( condition is true ){\
     something\
@@ -210,8 +276,6 @@ When you have a series of repetitive steps that you want to perform until a cert
     } while( condition is true )
 
 Considering these new instructions, we can use them to walk over a vector:
-
- 
 
 ```{r}
 
@@ -239,8 +303,40 @@ Since R is designed for working with vectors, the for loop directly iterates ove
 
 ```{r}
 
-for(number in disordered_vector){
-  print(number)
+i = 1
+element = disordered_vector[i]
+element
+
+i = i + 1
+element = disordered_vector[i]
+element
+
+i = i + 1
+element = disordered_vector[i]
+element
+
+i = i + 1
+element = disordered_vector[i]
+element
+
+i = i + 1
+element = disordered_vector[i]
+element
+
+i = i + 1
+element = disordered_vector[i]
+element
+
+i = i + 1
+element = disordered_vector[i]
+element
+
+```
+
+```{r}
+
+for(element in disordered_vector){
+  print(element)
 }
 ```
 
@@ -248,9 +344,39 @@ There is a more extreme optimization of for loops for R, covered by the family o
 
 ### 3. What steps do we need to sort the vector?
 
+-   Ask if the current number is greater than the next
+
+-   If true, swap them
+
+-   If false, leave them in the same place
+
 ### 4-5. Implementing and testing
 
 ```{r}
+
+disordered_vector <- c(5, 2, 7, 9, 3, 1, 4)
+
+is_ordered = FALSE
+while(is_ordered == FALSE){
+  i = 1
+  while(i < 7){
+    number = disordered_vector[i]
+    if(number > disordered_vector[i + 1]){
+      temp = disordered_vector[i + 1]
+      disordered_vector[ i + 1] = number
+      disordered_vector[i] = temp
+      is_ordered = FALSE
+    }else{
+      print("already in place")
+      if(i == 6){
+        is_ordered = TRUE
+      }
+    }
+    i = i + 1
+  }
+}
+
+disordered_vector
 
 ```
 
@@ -270,8 +396,14 @@ First lets load the gene annotation
 
 gene_annotation = read.table("~/GitHub/WorkshopR/IntroductoryLevel/data/gene_annotation.bed", header = TRUE)
 
-peak_location = data.frame(seqnames = "chr1", start = 114567557, end = 114581629, strand = "-", signal = "5.6")
+peak_location = data.frame(seqnames = "chr1", 
+                           start = 114567557, 
+                           end = 114581629, 
+                           strand = "-", 
+                           signal = "5.6")
 
+gene_annotation
+peak_location
 ```
 
 ## Remember the steps for solving a problem using a computer
