@@ -1,0 +1,283 @@
+---
+title: "Session 3"
+author: "Marco Tello"
+date: "2025-03-13"
+output: html_document
+---
+
+## Session 3: Functions, Variable Spaces, and Libraries
+
+### 0. Pre-session work
+
+Some packages we will use today are quite large, so please run the following code:
+
+```{r}
+
+# For Bioconductor version
+install.packages("BiocManager")
+BiocManager::install("biomaRt") 
+BiocManager::install("AnnotationDbi")
+BiocManager::install("EnsDb.Hsapiens.v86")
+
+```
+
+### 1. Introduction
+
+Welcome to Session 3!
+
+So far, we’ve navigated the basics of R, learning how to read data, explore it, and do simple manipulations. In this session, we’ll dive into an essential tool in every programmer’s toolbox: **functions**.
+
+A **function** in R (and in most programming languages) is like an experimental protocol in your lab journal. When you want to do a PCR, you consult your notebook for:
+
+-   **Reactives** – these are your inputs.
+-   **PCR setup** – these are the instructions (the “body” of your protocol).
+-   **Amplified sequence** – this is the output.
+
+In R, these components come together in a function to help you automate and reuse tasks. By the end of this session, you’ll know how to create your own functions, control where your variables “live,” and harness libraries like `biomaRt` to transform data more powerfully.
+
+### 2. What Are Functions and Why Use Them?
+
+It's likely that you have a general PCR protocol written down and you make small tweaks based on your current objectives. In this way, you don't investigate a new PCR protocol every time you want to do a PCR.
+
+It's the same thing when you're coding. Instead of writing the same code over and over, you can wrap it up into a function once—and then call that function anytime you need it.
+
+#### Components of a Function
+
+1.  **Name** – just like naming a protocol, you give the function a name.
+2.  **Arguments (Inputs)** – the starting material you pass into the function.
+3.  **Body** – the instructions inside the function.
+4.  **Return Value (Output)** – the final result after the function has done its job.
+
+### 3. Creating a Simple Function
+
+Let’s create our first function that reads a file and changes a column named `gene` from lowercase to uppercase. We’ll call it `read_and_fix_gene()`. Here’s the step-by-step logic:
+
+1.  It will take a **filename** as input.\
+2.  It will **read** the file into R (just like we did in previous sessions).\
+3.  It will **transform** the `gene` column from lowercase to uppercase.\
+4.  It will **return** the modified data so we can use it later.
+
+Let’s see it in action:
+
+```{r}
+# A simple function to read a tsv and fix the 'gene' column
+read_and_fix_gene <- function(filename) {
+  # Step 1: Read the file
+  data_table <- read.table(filename, header = TRUE, sep = '\t')
+  
+  # Step 2: Convert the 'gene' column to uppercase
+  data_table$gene <- toupper(data_table$gene)
+  
+  # Step 3: Return the modified data
+  return(data_table)
+}
+
+file_name = "~/GitHub/WorkshopR/IntroductoryLevel/data/DEG_results.tsv"
+fixed_data = read_and_fix_gene(file_name)
+head(fixed_data)
+```
+
+That’s it! With a few lines, we’ve created a handy, reusable function.
+
+------------------------------------------------------------------------
+
+### 4. Variable Spaces (aka “Scopes”)
+
+You might have noticed that the variable `data_table` was created inside our function. But what happens if you try to type `data_table` in your console after running the function?
+
+```{r}
+data_table
+```
+
+In many cases, you won’t see it—because it **lives** inside the function.
+
+This is related to the concept of **variable spaces** (or **scope**). Think of variable spaces like different houses on the same street:
+
+-   **Inside a function** – Variables live in their own private island. They’re only accessible within that function.
+-   **Outside a function (Global Environment)** – Variables you create in your main R session are in the city with the rest of the commoners. So if you create them here, they won’t automatically appear in the private island.
+
+Understanding this helps prevent accidents—like accidentally changing a variable you didn’t mean to, or losing track of where variables came from.
+
+**Try This**\
+If you want to see the difference, try creating a variable named `test_var` inside your function, and see if you can access `test_var` after the function finishes.
+
+```{r}
+
+# A simple function to read a tsv and fix the 'gene' column
+read_and_fix_gene <- function(filename) {
+  # Step 1: Read the file
+  data_table <- read.table(filename, header = TRUE, sep = '\t')
+  
+  # Step 2: Convert the 'gene' column to uppercase
+  data_table$gene <- toupper(data_table$gene)
+  
+  # Step 3: Return the modified data
+  return(data_table)
+}
+
+file_name = "~/GitHub/WorkshopR/IntroductoryLevel/data/DEG_results.tsv"
+fixed_data = read_and_fix_gene(file_name)
+head(fixed_data)
+
+```
+
+------------------------------------------------------------------------
+
+### 5. Understanding How Libraries Work
+
+So far, we’ve relied on core R functions. However, R has countless **libraries**, which are collections of functions and datasets written by other people (researchers, developers, etc.) to make your life easier.
+
+When you install a library, it’s like adding a new *sheet* to your protocol's binder that’s packed with extra tools. To use those tools, you generally do:
+
+``` r
+library(packageName)
+```
+
+And then you can call all the new functions from that package.
+
+In the next step, we’ll see how **biomaRt**, a popular library for working with bioinformatics data, can expand the capabilities of our function.
+
+------------------------------------------------------------------------
+
+### 6. Expanding Our Function with biomaRt
+
+Now we want to **modify** our simple function to do more than just fix the `gene` column. We’d like to convert ENSEMBL gene IDs to gene symbols. For that, we’ll use the **biomaRt** package.
+
+#### Installing and Loading biomaRt
+
+You can install `biomaRt` with:
+
+```{r}
+# install.packages("biomaRt")   # For CRAN version
+BiocManager::install("biomaRt") # For Bioconductor version
+BiocManager::install("AnnotationDbi")
+BiocManager::install("EnsDb.Hsapiens.v86")
+
+```
+
+Then load it:
+
+```{r}
+library(biomaRt)
+library(AnnotationDbi)
+library(EnsDb.Hsapiens.v86)
+```
+
+#### Setting Up the ENSEMBL “Mart”
+
+biomaRt allows us to **connect** to databases like ENSEMBL. Think of it as catching a shuttle bus between two cities: one city is your local R environment, and the other is the big ENSEMBL database.
+
+We just need to tell R *where* the bus station is and which route we’re taking:
+
+```{r}
+# Connect to Ensembl
+mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+```
+
+-   `"ensembl"` is the main database (bus station).
+-   `"hsapiens_gene_ensembl"` is the dataset for human genes (the bus route we’re riding).
+
+#### Fetching Gene Symbols from ENSEMBL IDs
+
+biomaRt has a function called `getBM()` (get BioMart), which takes:
+
+1.  **attributes** – the columns you want back (e.g., `ensembl_gene_id` and `external_gene_name`).
+2.  **filters** – how you want to filter the data (e.g., you have `ensembl_gene_id` values).
+3.  **values** – the actual list of ENSEMBL IDs you want to convert.
+4.  **mart** – the connection to Ensembl you created.
+
+Let’s see it in action in an expanded version of our function.
+
+------------------------------------------------------------------------
+
+### 7. Putting It All Together: `process_genes()` Function
+
+Below is a revised function that:
+
+1.  Reads a file with the results from DESeq2.
+2.  Uppercases the `gene` column (just like before).
+3.  Connects to ENSEMBL via biomaRt to convert those gene IDs to symbols.
+4.  Merges the new symbols back into our data frame (or creates a new column).
+
+This is something you may end up doing frequently, imagine you want to run a GO term analysis but the software you're using only takes ENSEMBL gene IDs and you only have gene symbols.
+
+```{r}
+
+process_genes <- function(filename) {
+  # Step 1: Read data
+  data_table <- read.table(filename, header = TRUE, sep = '\t')
+  
+  # Step 2: Convert 'gene' column to uppercase
+  data_table$gene <- toupper(data_table$gene)
+  
+  
+  # Step 3: Set up biomaRt connection
+  mart <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+
+  # # Step 4: Query Ensembl for matching gene symbols
+  conversion_table <- getBM(
+    attributes = c("ensembl_gene_id_version", "external_gene_name"),
+    filters = "ensembl_gene_id_version",
+    values = data_table$gene,
+    mart = mart
+  )
+  
+  # # In case biomaRt is not working 
+  # # Step 3: Set up database connection
+  # edb <- EnsDb.Hsapiens.v86
+  # # Step 4: Use EnsDb to convert ENSEMBL IDs to gene symbols
+  # # The column names in EnsDb use 'GENEID' for ENSEMBL IDs and 'SYMBOL' for gene symbols.
+  # conversion_table <- AnnotationDbi::select(
+  #   edb,
+  #   keys = gsub("\\.\\d+", "", data_table$gene),       # The values we want to convert
+  #   keytype = "GENEID",     # The type of ID in 'keys'
+  #   columns = c("GENEID", "SYMBOL")  # What we want back
+  # )
+  
+  # Step 5: Merge the new gene symbols back into 'data_table'
+  # We'll assume 'gene' in 'data_table' matches 'ensembl_gene_id' in 'conversion_table'
+  data_merged <- merge.data.frame(x = conversion_table, y = data_table, 
+                                  by.x = "ensembl_gene_id_version", by.y = "gene", 
+                                  all.x = FALSE, all.y = TRUE)
+  # Step 6: Return the merged data_table with both ENSEMBL IDs and the new symbol
+  return(data_merged)
+}
+
+file_name = "~/GitHub/WorkshopR/IntroductoryLevel/data/DEG_results.tsv"
+result_data <- process_genes(file_name)
+head(result_data)
+
+
+```
+
+**Remember:** each time you run this function, it’s traveling to ENSEMBL for the conversions, so it can be slower if your dataset is large.
+
+------------------------------------------------------------------------
+
+### 8. Practice Time
+
+Here are some suggestions for practicing:
+
+1.  **Try printing out** the different parts of the function (e.g., `conversion_table`) before merging to understand the structure of the data.
+2.  **Experiment** by removing the line `data_table$gene <- toupper(data$gene)` and see what happens if your IDs are not uppercase—does it matter for matching?
+3.  **Use different attributes** in `listAttributes(mart)`. For example, you can also fetch chromosome names, gene descriptions, or other metadata. Check out the documentation with `?getBM`, `?listAttributes`.
+
+```{r}
+
+
+
+
+
+
+```
+
+------------------------------------------------------------------------
+
+### 9. Conclusion and Next Steps
+
+By now, you should:
+
+1.  Understand the **structure of a function** and how it helps you avoid repeating code.
+2.  Understand **variable spaces**—how variables can be local to a function or global in your R session.
+3.  Use **libraries**, like `biomaRt`, to expand your coding possibilities.
+4.  Know how to **convert ENSEMBL IDs to gene symbols** (or vice versa) by integrating an external database query into your workflow.
