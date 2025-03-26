@@ -14,6 +14,7 @@ library(dplyr)
 library(tibble)
 library(readr)
 library(ggplot2)
+library(edgeR)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -343,13 +344,14 @@ In the tidyverse, the concept of groups is central to how functions like
 summarize(), mutate(), and filter() can be applied in a segmented way.
 Here’s the big picture:
 
-```         
-group_by(): Creates “subsets” of your data based on one or more columns.
+-   group_by(): Creates “subsets” of your data based on one or more
+    columns.
 
-Subsequent Operations: Functions like summarize(), mutate(), or even filter() will then operate within each group independently.
+-   Subsequent Operations: Functions like summarize(), mutate(), or even
+    filter() will then operate within each group independently.
 
-Ungrouping: If you want to return to the dataset without these group boundaries, you can use ungroup().
-```
+-   Ungrouping: If you want to return to the dataset without these group
+    boundaries, you can use ungroup().
 
 ```{r}
 
@@ -379,19 +381,19 @@ toy_summary
 
 ### Why Grouping Matters
 
-```         
-Clarity: You can explicitly define how data is segmented (e.g., by condition, timepoint, replicate).
+-   Clarity: You can explicitly define how data is segmented (e.g., by
+    condition, timepoint, replicate).
 
-Modularity: Summaries and statistics are produced for each subgroup.
+-   Modularity: Summaries and statistics are produced for each subgroup.
 
-Scalability: Works seamlessly with large datasets; no need to manually split data frames or write loops.
-```
+-   Scalability: Works seamlessly with large datasets; no need to
+    manually split data frames or write loops.
 
 By combining group_by() with summarize(), mutate(), and even filter(),
-you gain flexible, readable ways to handle complex biological
-datasets—whether you’re computing means of expression by condition,
-trimming out lowly expressed genes in specific groups, or normalizing
-each group differently.
+you gain flexible, readable ways to handle complex biological datasets —
+whether you’re computing means of expression by condition, trimming out
+lowly expressed genes in specific groups, or normalizing each group
+differently.
 
 ## 5.4 Normalizing Counts with CPM
 
@@ -401,11 +403,6 @@ counts per million (CPM), then transform to log space for better
 visualization. We can do this with the edgeR package:
 
 ```{r}
-# install.packages("edgeR") # Or use BiocManager::install("edgeR") if needed
-library(edgeR)
-
-# Suppose 'exp_mat' is your matrix or data frame of counts
-# (excluding the gene names column).
 # We'll do:
 expr_log2cpm <- cpm(exp_mat, log = TRUE, prior.count = 1)
 
@@ -420,17 +417,18 @@ expr_log2cpm %>%
 
 ```
 
-Key Points:
+## How do we fix the code?!
 
-```         
-cpm() computes CPM from raw counts.
+### Key Points:
 
-log = TRUE applies a log2 transform to the CPM values.
+-   cpm() computes CPM from raw counts.
 
-prior.count = 1 avoids taking log of zero.
+-   log = TRUE applies a log2 transform to the CPM values.
 
-We then reshape the data with pivot_longer() to get a tidy format for ggplot.
-```
+-   prior.count = 1 avoids taking log of zero.
+
+-   We then reshape the data with pivot_longer() to get a tidy format
+    for ggplot.
 
 ## 5.5 Violin Plots
 
@@ -442,21 +440,22 @@ rotated density on each side.
 Hints: look into the aes() fill parameter and the function
 scale_fill_manual() if you want to change the colors.
 
-Conclusion
+# Conclusion
 
 In this session, you learned:
 
-```         
-What tidy data is and why it’s beneficial.
+-   What tidy data is and why it’s beneficial.
 
-How to use the tidyverse to read data into tibbles and the advantages tibbles offer.
+-   How to use the tidyverse to read data into tibbles and the
+    advantages tibbles offer.
 
-The “grammar of graphics” in ggplot2, layering transformations via pivot_longer(), mapping aesthetics, and adding geometry layers.
+-   The “grammar of graphics” in ggplot2, layering transformations via
+    pivot_longer(), mapping aesthetics, and adding geometry layers.
 
-How to filter out lowly expressed genes using tidyverse syntax.
+-   How to filter out lowly expressed genes using tidyverse syntax.
 
-How to use edgeR to perform CPM normalization on raw counts before visualizing.
-```
+-   How to use edgeR to perform CPM normalization on raw counts before
+    visualizing.
 
 With these skills, you’re ready to handle broader and more complex
 explorations of gene expression data. Tidy formats will make your life

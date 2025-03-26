@@ -61,6 +61,15 @@ How do you check if a number is divisible by something?
 5 %% 2
 
 4 %% 2
+
+
+number = 4
+if(number %% 2 == 0){
+  print("Is divisible")
+}else{
+  print("Not divisible")
+}
+
 ```
 
 ### 2. What do we need to solve the problem?
@@ -357,7 +366,9 @@ There is a more extreme optimization of for loops for R, covered by the family o
 disordered_vector <- c(5, 2, 7, 9, 3, 1, 4)
 
 is_ordered = FALSE
+
 while(is_ordered == FALSE){
+  is_ordered = TRUE
   i = 1
   while(i < 7){
     number = disordered_vector[i]
@@ -368,9 +379,6 @@ while(is_ordered == FALSE){
       is_ordered = FALSE
     }else{
       print("already in place")
-      if(i == 6){
-        is_ordered = TRUE
-      }
     }
     i = i + 1
   }
