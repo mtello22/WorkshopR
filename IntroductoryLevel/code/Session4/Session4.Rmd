@@ -1,0 +1,463 @@
+---
+title: "Session4"
+author: "Marco Tello"
+date: "2025-03-26"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(dplyr)
+library(tibble)
+library(readr)
+library(ggplot2)
+library(edgeR)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Welcome to Session 4! So far, you’ve learned how to work with data in R,
+create functions, and explore basic data manipulations. In this session,
+you’ll step into the world of tidy data and the tidyverse. We’ll also
+show you how to leverage ggplot2 for exploratory data analysis.
+
+We will use a gene expression matrix where:
+
+-   Column 1 = Gene name (e.g., ENSEMBL IDs).
+
+-   Columns 2-8 = Expression counts for 7 samples.
+
+-   Samples 1 to 3 belong to one condition.
+
+-   Samples 4 to 7 belong to a second condition.
+
+By the end of this session, you should be able to:
+
+-   Understand what tidy data is and how it differs from non-tidy data.
+
+-   Read data using tidyverse functions and compare tibbles vs. data
+    frames.
+
+-   Grasp the basics of ggplot2 syntax: data, aes(), and layers.
+
+-   Reshape data for plotting using pivot_longer() and understand “wide”
+    vs. “long” formats.
+
+-   Filter lowly expressed genes with tidyverse.
+
+-   Normalize counts using counts per million (CPM) from edgeR, then
+    visualize with ggplot2.
+
+Let’s jump in!
+
+# 1. Tidy Data 
+
+## 1.1 What is Tidy Data?
+
+In R, tidy data is an approach to structuring your data so that:
+
+-   Each variable is in its own column.
+
+-   Each observation is a row.
+
+-   Each type of observational unit is a separate table
+
+Think of your dataset as a well-organized closet, with each shelf
+dedicated to a single item type—no mismatched socks stuffed in random
+places! This structure makes it easier to perform manipulations,
+analyses, and visualizations. 1.2 Advantages of Tidy Data
+
+-   Consistency: Because each column is a clear variable, you always
+    know where to find what you need.
+
+-   Compatibility: Many R packages (especially within the tidyverse)
+    expect data in tidy format to work smoothly.
+
+-   Readability: It’s more intuitive to understand the data at a glance.
+
+### 1.3 Example: 
+
+## Tidy vs. Non-Tidy Non-Tidy Example
+
+## Gene Sample1_expression Sample2_expression Condition1 Condition2
+
+ENSG... 100 150 "blue" "red" ENSG... 200 300 "blue" "red"
+
+Each column combines what should be separate variables
+(Sample1_expression lumps “Sample” and “Expression” in the column name).
+Conditions might be in separate columns, which could be better
+represented as a single “Condition” variable.
+
+### Tidy Example
+
+## Gene Sample Condition Expression
+
+ENSG... 1 "blue" 100 ENSG... 2 "blue" 150 ENSG... 1 "red" 200 ENSG... 2
+"red" 300
+
+Now you have one column for Gene, one for Sample, one for Condition, and
+one for the Expression value. This layout is more flexible for functions
+like ggplot(), dplyr verbs, etc.
+
+# 2. Reading Data with the Tidyverse
+
+The tidyverse is a collection of packages designed with shared ideas
+about how data should be structured and manipulated (e.g., dplyr, tidyr,
+readr, ggplot2).
+
+You can install the tidyverse with:
+
+```{r}
+# install.packages("tidyverse")
+library(tidyverse)
+
+```
+
+## 2.1 Tibble vs. Data Frame
+
+When you read data with read_csv() (from readr, a core tidyverse
+package), you get a tibble instead of a base R data frame. A tibble is
+basically a data frame with:
+
+-   A more refined print method (so it doesn’t flood your console with
+    too many columns/rows).
+
+-   Better handling of column names and data types.
+
+### Advantages of Tibbles:
+
+-   Better defaults: They don’t convert strings to factors by default.
+
+-   Partial row printing: Tibbles show you a preview without overloading
+    the console.
+
+-   Implicit type-stable: You’re less likely to run into surprises
+    during data manipulation.
+
+-   You can still work with tibbles using all the regular data frame
+    functions, so it’s generally a smooth transition.
+
+# 3. ggplot2: Grammar of Graphics
+
+ggplot2 is like constructing a plot by layering components:
+
+-   data = The dataset you want to visualize.
+
+-   aes() = Aesthetics that map columns to visual features (e.g., x, y,
+    color, fill).
+
+-   geom\_\* = Geoms or geometry layers that define how the data is
+    drawn (points, lines, bars, densities, etc.).
+
+### Basic Syntax:
+
+ggplot(data = <DATA>, aes(<MAPPINGS>)) + \
+<GEOM_FUNCTION>()
+
+<DATA> is typically a data frame or tibble.
+
+<MAPPINGS> are aes(x = something, y = something_else, color = group) or
+similar.
+
+Each + adds a new “layer” to the plot.
+
+## 3.1 Example: Creating a Box Plot
+
+Let’s create a quick example tibble to demonstrate. Suppose we have a
+small dataset of Gene, Sample, and Expression:
+
+```{r}
+# Create a toy tibble
+example_data <- tibble(
+  Gene = c("ENSG0001", "ENSG0002", "ENSG0003", "ENSG0004"),
+  Sample1 = c(100, 150, 300, 500),
+  Sample2 = c(80, 130, 350, 400)
+)
+
+# For ggplot, we often want the data in LONG format:
+long_data <- example_data %>%
+  pivot_longer(
+    cols = starts_with("Sample"), 
+    names_to = "Sample",
+    values_to = "Expression"
+  )
+
+# Now let's plot a boxplot:
+ggplot(long_data, aes(x = Sample, y = Expression)) +
+  geom_boxplot() +
+  labs(title = "Example Box Plot", x = "Sample", y = "Expression Value")
+
+```
+
+Here, we used:
+
+pivot_longer() to go from wide to long.
+
+aes(x = Sample, y = Expression) to map columns to axes.
+
+geom_boxplot() to draw the boxplot layer.
+
+# 4. Formatting a Tibble for ggplot: Pivoting
+
+We often have expression data in wide format, something like:
+
+Gene Sample1 Sample2 Sample3 Sample4 ... ENSG0001 100 120 130 80 ...
+ENSG0002 400 200 300 500 ... ... ... ... ... ... ...
+
+But ggplot2 loves long format, which might look like:
+
+Gene Sample Expression ENSG0001 Sample1 100 ENSG0001 Sample2 120
+ENSG0001 Sample3 130 ENSG0002 Sample1 400 ENSG0002 Sample2 200 ... ...
+...
+
+To get there, we use pivot_longer() from tidyr.
+
+```{r, eval=FALSE}
+long_data <- original_data %>%
+  pivot_longer(
+    cols = -Gene,           # or specify e.g. 2:8 if you know your gene col is 1
+    names_to = "Sample",
+    values_to = "Expression"
+  )
+
+```
+
+## 4.1 Practice Exercises
+
+Plot a Boxplot: From that toy data, create a simple boxplot of
+Expression by Sample.
+
+```{r}
+
+# Toy data: 10 genes, 3 samples
+example_data <- tibble(
+  Gene = paste0("ENSG0000", 1:10),
+  Sample1 = sample(50:500, 10),
+  Sample2 = sample(50:500, 10),
+  Sample3 = sample(50:500, 10)
+)
+
+```
+
+# Putting it all together!
+
+Let’s read a count matrix named count_df with columns:
+
+ENSEMBL = Gene IDs (like ENSG000000...) in the first column.
+
+Sample1 through Sample7 = Expression counts in columns 2 through 8.
+
+```{r}
+
+# Read a TSV file into a tibble
+count_df <- read_tsv("~/GitHub/WorkshopR/IntroductoryLevel/data/exp_matrix.txt")
+
+# Check the first rows
+head(count_df)
+```
+
+## 5.1 Pivoting & Exploratory Plots
+
+```{r}
+count_df %>%
+  pivot_longer(!ENSEMBL) %>%
+  # Check if we want to remove the gene column or not
+  dplyr::select(!ENSEMBL) %>%
+  ggplot(aes(x = value, color = name)) +
+    geom_density() +
+    scale_x_continuous(trans = 'log10') +
+    labs(title = "Gene expression density plot")
+
+```
+
+In this code:
+
+-   pivot_longer(!ENSEMBL) means pivot all columns except the ENSEMBL
+    column.
+
+-   dplyr::select(!ENSEMBL) is removing the gene column from the final
+    dataset for plotting. (Whether you need this line is
+    context-dependent.)
+
+-   We then call ggplot(), mapping x = value (the expression) and color
+    = name (the sample).
+
+## 5.2 Annotating Conditions
+
+Next, we can add a “condition” column based on which sample belongs to
+which group. For instance, samples 1 to 3 are “blue,” and samples 4 to 7
+are “red.”
+
+```{r}
+temp <- count_df %>%
+  pivot_longer(!ENSEMBLID, names_to = "name", values_to = "value") %>%
+  mutate(sample_number = str_replace(string = name, 
+                                     pattern = "Sample", 
+                                     replacement = "")) %>%
+  mutate(sample_number = as.numeric(sample_number)) %>%  # Convert to numeric
+  mutate(condition = case_when(
+    sample_number <= 3 ~ "blue",
+    sample_number > 3  ~ "red"
+  )) %>%
+  dplyr::select(-sample_number)
+ 
+temp %>%
+  ggplot(aes(x = value, color = name)) +
+  geom_density() +
+  scale_x_continuous(trans = 'log10', labels = scales::comma) +
+  scale_color_manual(values = temp$condition) +
+  labs(title = "Gene expression density plot by condition")
+
+```
+
+We’ve introduced a condition column by using case_when(). Notice we also
+used scale_color_manual() to assign custom colors.
+
+## 5.3 Filtering Lowly Expressed Genes and using groups
+
+Before diving further, you might want to remove genes with very low
+expression across all samples. For example, keep only genes that have at
+least 5 counts in half the samples.
+
+```{r}
+# Number of sample columns
+num_samples <- ceiling(7 / 2)
+threshold   <- 5
+
+count_df_filtered <- count_df %>%
+  # For each row (gene), count how many sample columns have counts >= threshold
+  rowwise() %>%
+  mutate(n_above_threshold = sum(c_across(starts_with("Sample")) >= threshold)) %>%
+  # Keep rows where at least half the samples (rounded up) pass the threshold
+  filter(n_above_threshold >= num_samples) %>%
+  ungroup()
+
+count_df_filtered
+
+```
+
+In the tidyverse, the concept of groups is central to how functions like
+summarize(), mutate(), and filter() can be applied in a segmented way.
+Here’s the big picture:
+
+-   group_by(): Creates “subsets” of your data based on one or more
+    columns.
+
+-   Subsequent Operations: Functions like summarize(), mutate(), or even
+    filter() will then operate within each group independently.
+
+-   Ungrouping: If you want to return to the dataset without these group
+    boundaries, you can use ungroup().
+
+```{r}
+
+
+# Pretend this is pivoted data: each row is (Gene, Sample, Condition, Expression)
+toy_long <- tibble(
+  Gene       = rep(paste0("ENSG000", 1:5), each = 2),
+  Sample     = rep(c("Sample1", "Sample2"), times = 5),
+  Condition  = rep(c("blue", "red"), times = 5),
+  Expression = c(100, 200, 150, 250, 120, 300, 85, 210, 400, 550)
+)
+
+# 1) Group by Condition
+toy_long_grouped <- toy_long %>%
+  group_by(Condition)
+
+# 2) Summarize within each Condition
+toy_summary <- toy_long_grouped %>%
+  summarize(
+    mean_expr = mean(Expression),
+    sd_expr   = sd(Expression),
+    count_genes = n()
+  )
+
+toy_summary
+```
+
+### Why Grouping Matters
+
+-   Clarity: You can explicitly define how data is segmented (e.g., by
+    condition, timepoint, replicate).
+
+-   Modularity: Summaries and statistics are produced for each subgroup.
+
+-   Scalability: Works seamlessly with large datasets; no need to
+    manually split data frames or write loops.
+
+By combining group_by() with summarize(), mutate(), and even filter(),
+you gain flexible, readable ways to handle complex biological datasets —
+whether you’re computing means of expression by condition, trimming out
+lowly expressed genes in specific groups, or normalizing each group
+differently.
+
+## 5.4 Normalizing Counts with CPM
+
+Before further analysis, we often normalize gene counts to account for
+different library sizes. A common approach is to convert counts to
+counts per million (CPM), then transform to log space for better
+visualization. We can do this with the edgeR package:
+
+```{r}
+# We'll do:
+expr_log2cpm <- cpm(exp_mat, log = TRUE, prior.count = 1)
+
+# Now let's pivot that data for plotting:
+expr_log2cpm %>%
+  as.data.frame() %>%
+  rownames_to_column("ENSEMBLID") %>%   # If row names are gene IDs
+  pivot_longer(!ENSEMBLID, names_to = "Sample", values_to = "Expression") %>%
+  ggplot(aes(x = Expression, color = Sample))+
+  geom_density() +
+  labs(title = "Log2-CPM Normalized Gene Expression Density")
+
+```
+
+## How do we fix the code?!
+
+### Key Points:
+
+-   cpm() computes CPM from raw counts.
+
+-   log = TRUE applies a log2 transform to the CPM values.
+
+-   prior.count = 1 avoids taking log of zero.
+
+-   We then reshape the data with pivot_longer() to get a tidy format
+    for ggplot.
+
+## 5.5 Violin Plots
+
+Finally, you can encourage your lab members to create violin plots on
+their own—both for the raw counts and the normalized data. A violin plot
+shows the distribution shape of the data, similar to a boxplot with a
+rotated density on each side.
+
+Hints: look into the aes() fill parameter and the function
+scale_fill_manual() if you want to change the colors.
+
+# Conclusion
+
+In this session, you learned:
+
+-   What tidy data is and why it’s beneficial.
+
+-   How to use the tidyverse to read data into tibbles and the
+    advantages tibbles offer.
+
+-   The “grammar of graphics” in ggplot2, layering transformations via
+    pivot_longer(), mapping aesthetics, and adding geometry layers.
+
+-   How to filter out lowly expressed genes using tidyverse syntax.
+
+-   How to use edgeR to perform CPM normalization on raw counts before
+    visualizing.
+
+With these skills, you’re ready to handle broader and more complex
+explorations of gene expression data. Tidy formats will make your life
+easier, and ggplot2 will give you the power to communicate results
+visually. Happy coding!
